@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LogLens</title>
+<meta name="description" content="Results of log anomaly detection with language models and semantic embeddings.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-in">
+    <a class="brand" href="#top"><span class="logo" aria-hidden="true"></span>LogLens</a>
+    <nav>
+      <a href="#leaderboard">Leaderboard</a>
+      <a href="#robustness">Robustness</a>
+      <a href="#cross">Cross-system</a>
+      <a href="#rewording">Rewording</a>
+      <a href="#findings">Findings</a>
+      <a href="#data">Data</a>
+      <a href="try.html"><b>Try it →</b></a>
+    </nav>
+    <button id="theme" class="icon-btn" type="button" aria-label="Switch theme" title="Switch theme">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">NLP project · Log anomaly detection</p>
+    <h1>Can a model that reads the <span class="grad">meaning</span> of logs survive change?</h1>
+    <p class="lead">We trained five detectors on two real system logs (HDFS and BGL), then made the test harder: noisy logs, reworded messages, and a system the models had never seen.</p>
+    <div class="tiles" id="tiles"></div>
+    <p class="scale" id="scale"></p>
+  </div>
+</section>
+
+<section class="wrap block" id="how">
+  <h2>How it works</h2>
+  <div class="steps">
+    <div class="step"><span class="n">1</span><h3>Parse</h3><p>Drain turns raw lines into templates. <em>Receiving block blk_1 from 10.0.0.1</em> becomes <em>Receiving block &lt;*&gt; from &lt;*&gt;</em>.</p></div>
+    <div class="step"><span class="n">2</span><h3>Group</h3><p>HDFS: all events of one block. BGL: windows of 20 lines. A group is anomalous if it contains a failure.</p></div>
+    <div class="step"><span class="n">3</span><h3>Represent</h3><p>Each template becomes an event ID, or an SBERT vector that stands for what the message means.</p></div>
+    <div class="step"><span class="n">4</span><h3>Detect</h3><p>Five detectors read each group and say normal or anomaly. Scores are for the anomaly class only.</p></div>
+  </div>
+  <div class="chips" id="model-chips"></div>
+</section>
+
+<section class="wrap block" id="leaderboard">
+  <h2>Leaderboard</h2>
+  <p class="sub">How well each detector finds anomalies on clean test data from its own system.</p>
+  <div class="controls">
+    <div id="seg-l-ds"></div>
+    <div id="seg-l-metric"></div>
+  </div>
+  <div class="card"><div id="leader" class="hbars"></div></div>
+  <p class="note" id="leader-note"></p>
+</section>
+
+<section class="wrap block" id="robustness">
+  <h2>Robustness</h2>
+  <p class="sub">The same trained models, tested after we damage the logs. A flat line means the model is not bothered.</p>
+  <div class="controls">
+    <div id="seg-r-ds"></div>
+    <div id="seg-r-pert"></div>
+    <div id="seg-r-metric"></div>
+  </div>
+  <div class="card">
+    <div class="legend" id="r-legend"></div>
+    <div id="r-chart" class="chart"></div>
+    <details class="tview"><summary>Table view</summary><div id="r-table"></div></details>
+  </div>
+  <p class="note" id="r-note"></p>
+</section>
+
+<section class="wrap block" id="cross">
+  <h2>Cross-system test</h2>
+  <p class="sub">Train on one system, test on the other. Template IDs from one system mean nothing in the other.</p>
+  <div class="controls"><div id="seg-c"></div></div>
+  <div class="two">
+    <div class="card"><h3 class="ph">Trained on HDFS, tested on BGL</h3><div id="c1" class="hbars"></div></div>
+    <div class="card"><h3 class="ph">Trained on BGL, tested on HDFS</h3><div id="c2" class="hbars"></div></div>
+  </div>
+  <p class="note" id="c-note"></p>
+</section>
+
+<section class="wrap block" id="rewording">
+  <h2>What rewording looks like</h2>
+  <p class="sub">A software update changes the wording of a message. A model that only knows IDs sees a brand-new event. SBERT still sees nearly the same meaning.</p>
+  <div class="two">
+    <div class="card pairs">
+      <div class="pair"><div class="before"><span class="tag">before</span>Receiving block &lt;*&gt; src: &lt;*&gt; dest: &lt;*&gt;</div><div class="after"><span class="tag">after</span>getting data chunk &lt;*&gt; src: &lt;*&gt; dest: &lt;*&gt;</div></div>
+      <div class="pair"><div class="before"><span class="tag">before</span>Received block &lt;*&gt; of size &lt;*&gt; from &lt;*&gt;</div><div class="after"><span class="tag">after</span>got data chunk &lt;*&gt; of size &lt;*&gt; from &lt;*&gt;</div></div>
+      <div class="pair"><div class="before"><span class="tag">before</span>&lt;*&gt; Served block &lt;*&gt; to &lt;*&gt;</div><div class="after"><span class="tag">after</span>&lt;*&gt; delivered data chunk &lt;*&gt; to &lt;*&gt;</div></div>
+      <div class="pair"><div class="before"><span class="tag">before</span>BLOCK* NameSystem.allocateBlock: &lt;*&gt; &lt;*&gt;</div><div class="after"><span class="tag">after</span>Event: BLOCK* NameSystem.allocateBlock: &lt;*&gt; &lt;*&gt;</div></div>
+    </div>
+    <div class="card sim">
+      <h3 class="ph">SBERT similarity</h3>
+      <p class="mini">Mean cosine similarity, from the embedding step.</p>
+      <div id="sim"></div>
+    </div>
+  </div>
+  <p class="note">The rewording is rule-based (a small synonym list), not written by a language model. It is a fair first test, not a copy of real software updates.</p>
+</section>
+
+<section class="wrap block" id="findings">
+  <h2>What the results say</h2>
+  <div class="two">
+    <div class="card">
+      <h3 class="ph ok"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Supported</h3>
+      <ul class="list" id="f-good"></ul>
+    </div>
+    <div class="card">
+      <h3 class="ph warn"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18.5v.01"/></svg>Read with care</h3>
+      <ul class="list" id="f-care"></ul>
+    </div>
+  </div>
+</section>
+
+<section class="wrap block" id="data">
+  <h2>All results</h2>
+  <p class="sub">Every number behind the charts. Click a column to sort.</p>
+  <div class="controls filters">
+    <label>Model <select id="f-model"></select></label>
+    <label>Trained on <select id="f-train"></select></label>
+    <label>Tested on <select id="f-test"></select></label>
+    <label>Condition <input id="f-cond" type="search" placeholder="e.g. drop, reword"></label>
+    <button id="csv" class="btn" type="button">Download CSV</button>
+  </div>
+  <div class="card tablecard"><div class="tscroll"><table id="tbl"></table></div></div>
+  <p class="note" id="rowcount"></p>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>Natural Language Processing project · Detecting anomalies in system logs using language models and semantic embeddings</p>
+    <p class="mini">Rumaisa Behram · Mahnoor Ishfaq · Menahil Naeem · Muntaha Javaid · Supervisor: Prof. Dr. Waqas Anwar</p>
+  </div>
+</footer>
+
+<div id="tip" role="tooltip"></div>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
