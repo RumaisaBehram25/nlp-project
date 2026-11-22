@@ -18,3 +18,12 @@ Run the server (needs `pip install -r app/requirements.txt`):
     cd app && python3 server.py        # then open http://localhost:8000/try.html
 
 Or in Colab: upload the `app` folder to `MyDrive/nlp_log_anomaly/app` and run `app/run_in_colab.ipynb`.
+
+
+## What is in this repo
+- `log_anomaly_detection.ipynb` - clean notebook (no outputs), run it in Colab.
+- `results/log_anomaly_detection.ipynb` - the same notebook after a full run, with all outputs.
+- `results/` - result tables (`results.csv`, `table_*.csv`) and `figures/`.
+- `app/models/` - the 10 trained models used by the web app.
+- `app/` - LogLens web app (dashboard `index.html`, Try it `try.html` + Python server).
+- The raw HDFS/BGL datasets are not included (too big); download them and put them in `data/raw/`.

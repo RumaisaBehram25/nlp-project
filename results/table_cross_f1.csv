@@ -1,0 +1,6 @@
+model,BGL to HDFS (cross),BGL to HDFS (cross_tuned),HDFS to BGL (cross),HDFS to BGL (cross_tuned)
+DeepLog,0.0379,0.1591,0.0415,0.0415
+TFIDF-id,0.0,0.0571,0.0415,0.0415
+TFIDF-text,0.0,0.6854,0.0415,0.0412
+Transformer-id,0.0,0.5707,0.0415,0.0415
+Transformer-sbert,0.5427,0.5427,0.783,0.7865
